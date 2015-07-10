@@ -23,8 +23,8 @@ deltaUrl (Namespace n) = "https://api.nylas.com/n/" <> n <> "/delta"
 authenticatedOpts :: AccessToken -> Options -> Options
 authenticatedOpts (AccessToken t) = auth ?~ basicAuth (B.pack t) ""
 
-getDeltas :: AccessToken -> Namespace -> Cursor -> Producer B.ByteString IO ()
-getDeltas t n (Cursor c) = lift mraw >>= PB.fromLazy
+streamDeltas :: AccessToken -> Namespace -> Cursor -> Producer B.ByteString IO ()
+streamDeltas t n (Cursor c) = lift mraw >>= PB.fromLazy
    where opts = defaults & authenticatedOpts t
                          & param "cursor" .~ [T.pack c]
          url = deltaUrl n
@@ -42,7 +42,6 @@ main = do
   --                     & param "cursor" .~ [T.pack c]
   -- r <- getWith opts url
 
-  let producer = getDeltas token namespace cursor
-
+  let producer = streamDeltas token namespace cursor
   -- runEffect $ producer >-> _
   return ()
