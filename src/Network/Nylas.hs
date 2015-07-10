@@ -30,11 +30,20 @@ streamDeltas t n (Cursor c) = lift mraw >>= PB.fromLazy
          url = deltaUrl n
          mraw = (^. responseBody) <$> (getWith opts url)
 
+messageUrl :: Namespace -> MessageId -> Url
+messageUrl (Namespace n) (MessageId i) = "https://api.nylas.com/n/" <> n <> "/messages/" <> i
+
+getMessage :: AccessToken -> Namespace -> MessageId -> IO Message
+getMessage t n i = (^. responseBody) <$> (getWith opts url >>= asJSON)
+  where opts = defaults & authenticatedOpts t
+        url = messageUrl n i
+
 main :: IO ()
 main = do
   let token = AccessToken "C8SbrcFVIgnEQi8RdS9beNKnixtEcT"
   let namespace = Namespace "d1z6pzjd1qvalej8bd51abun9"
   let cursor = Cursor "6h6g1xq4d930ja9375mprv6d0"
+  let msgId = MessageId "b38i00l4f6qziwl154f57oi1o"
 
   -- let Cursor c = cursor
   -- let url = deltaUrl namespace
@@ -44,4 +53,6 @@ main = do
 
   let producer = streamDeltas token namespace cursor
   -- runEffect $ producer >-> _
-  return ()
+
+  msg <- getMessage token namespace msgId
+  putStrLn $ show msg
