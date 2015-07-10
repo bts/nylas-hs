@@ -2,16 +2,15 @@
 
 module Network.Nylas where
 
-import           Control.Lens
--- import Pipes
--- import Pipes.Prelude as P
+import           Control.Lens hiding (each)
 -- import           Data.Aeson.Lens
-import qualified Data.ByteString.Char8 as BS
-import qualified Data.ByteString.Lazy.Char8 as BL
+import qualified Data.ByteString.Char8 as B
 import           Data.Monoid
 import qualified Data.Text as T
--- import Data.Text (pack)
 import           Network.Wreq
+import           Pipes
+import qualified Pipes.ByteString as PB
+import qualified Pipes.Prelude as P
 
 import Network.Nylas.Types
 
@@ -22,13 +21,14 @@ deltaUrl :: Namespace -> Url
 deltaUrl (Namespace n) = "https://api.nylas.com/n/" <> n <> "/delta"
 
 authenticatedOpts :: AccessToken -> Options -> Options
-authenticatedOpts (AccessToken t) = auth ?~ basicAuth (BS.pack t) ""
+authenticatedOpts (AccessToken t) = auth ?~ basicAuth (B.pack t) ""
 
-getDeltas :: AccessToken -> Namespace -> Cursor -> IO (Response BL.ByteString)
-getDeltas t n (Cursor c) = getWith opts url
+getDeltas :: AccessToken -> Namespace -> Cursor -> Producer B.ByteString IO ()
+getDeltas t n (Cursor c) = lift mraw >>= PB.fromLazy
    where opts = defaults & authenticatedOpts t
                          & param "cursor" .~ [T.pack c]
          url = deltaUrl n
+         mraw = (^. responseBody) <$> (getWith opts url)
 
 main :: IO ()
 main = do
@@ -42,6 +42,7 @@ main = do
   --                     & param "cursor" .~ [T.pack c]
   -- r <- getWith opts url
 
-  r <- getDeltas token namespace cursor
+  let producer = getDeltas token namespace cursor
 
-  putStrLn $ show $ r ^. responseBody
+  -- runEffect $ producer >-> _
+  return ()
