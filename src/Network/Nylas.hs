@@ -5,6 +5,7 @@ module Network.Nylas where
 import           Control.Lens hiding (each)
 -- import           Data.Aeson.Lens
 import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.Lazy as BL
 import           Data.Monoid
 import qualified Data.Text as T
 import           Network.Wreq
@@ -28,6 +29,7 @@ streamDeltas t n (Cursor c) = lift mraw >>= PB.fromLazy
    where opts = defaults & authenticatedOpts t
                          & param "cursor" .~ [T.pack c]
          url = deltaUrl n
+         mraw :: IO BL.ByteString
          mraw = (^. responseBody) <$> (getWith opts url)
 
 messageUrl :: Namespace -> MessageId -> Url
