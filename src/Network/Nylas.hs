@@ -18,8 +18,8 @@ import Network.Nylas.Types
 -- TODO: user authentication
 -- TODO: stream deltas with pipes
 
-deltaUrl :: Namespace -> Url
-deltaUrl (Namespace n) = "https://api.nylas.com/n/" <> n <> "/delta"
+deltaStreamUrl :: Namespace -> Url
+deltaStreamUrl (Namespace n) = "https://api.nylas.com/n/" <> n <> "/delta/streaming"
 
 authenticatedOpts :: AccessToken -> Options -> Options
 authenticatedOpts (AccessToken t) = auth ?~ basicAuth (B.pack t) ""
@@ -28,7 +28,7 @@ streamDeltas :: AccessToken -> Namespace -> Cursor -> Producer B.ByteString IO (
 streamDeltas t n (Cursor c) = lift mraw >>= PB.fromLazy
    where opts = defaults & authenticatedOpts t
                          & param "cursor" .~ [T.pack c]
-         url = deltaUrl n
+         url = deltaStreamUrl n
          mraw :: IO BL.ByteString
          mraw = (^. responseBody) <$> (getWith opts url)
 
@@ -48,12 +48,12 @@ main = do
   let msgId = MessageId "b38i00l4f6qziwl154f57oi1o"
 
   -- let Cursor c = cursor
-  -- let url = deltaUrl namespace
+  -- let url = deltaStreamUrl namespace
   -- let opts = defaults & authenticatedOpts token
   --                     & param "cursor" .~ [T.pack c]
   -- r <- getWith opts url
 
-  let producer = streamDeltas token namespace cursor
+  let bsProducer = streamDeltas token namespace cursor
   -- runEffect $ producer >-> _
 
   msg <- getMessage token namespace msgId
