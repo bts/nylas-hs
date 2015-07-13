@@ -31,7 +31,8 @@ instance FromJSON Message where
   parseJSON _ = empty
 
 data DeltaObject
-  = DeltaContact
+  = DeltaCalendar
+  | DeltaContact
   | DeltaEvent
   | DeltaFile
   | DeltaMessage Message
@@ -43,6 +44,7 @@ instance FromJSON DeltaObject where
   parseJSON o@(Object v) = do
     (String objectType) <- v .: "object"
     case objectType of
+      "calendar" -> pure DeltaCalendar
       "contact" -> pure DeltaContact
       "event" -> pure DeltaEvent
       "file" -> pure DeltaFile
