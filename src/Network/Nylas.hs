@@ -17,9 +17,6 @@ import           Pipes.HTTP
 
 import Network.Nylas.Types
 
--- TODO: user authentication
--- TODO: stream deltas with pipes
-
 deltasUrl :: Namespace -> Url
 deltasUrl (Namespace n) = "https://api.nylas.com/n/" <> n <> "/delta"
 
