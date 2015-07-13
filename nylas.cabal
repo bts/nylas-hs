@@ -32,6 +32,7 @@ library
                      , pipes-parse >= 3.0.2      && < 4.0
                      , text >= 1.2.1.1           && < 1.3
                      , wreq >= 0.4.0.0           && < 0.5
+                     , pipes-http >= 1.0.2       && < 2.0
   hs-source-dirs:      src
   default-language:    Haskell2010
   ghc-options:         -Wall

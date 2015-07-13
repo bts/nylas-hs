@@ -88,3 +88,5 @@ instance FromJSON Delta where
 instance ToJSON NylasId
 instance ToJSON Message where
   toJSON (Message {_messageId = i}) = object ["id" .= i]
+instance ToJSON Delta where
+  toJSON _ = object []
