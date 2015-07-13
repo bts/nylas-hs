@@ -4,14 +4,10 @@ module Network.Nylas where
 
 import           Control.Lens hiding (each)
 import qualified Data.ByteString.Char8 as B
--- import qualified Data.ByteString.Lazy as BL
 import           Data.Monoid
--- import qualified Data.Text as T
 import qualified Network.Wreq as W
 import           Pipes
--- import qualified Pipes.Aeson as A
 import qualified Pipes.Aeson.Unchecked as AU
--- import qualified Pipes.ByteString as PB
 import qualified Pipes.Prelude as P
 import           Pipes.HTTP
 
