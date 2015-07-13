@@ -68,5 +68,4 @@ main = do
   consumeDeltas mgr token namespace cursor (P.map show >-> P.stdoutLn)
 
   let msgId = NylasId "b38i00l4f6qziwl154f57oi1o"
-  msg <- getMessage mgr token namespace msgId
-  putStrLn $ show msg
+  putStrLn . show =<< getMessage mgr token namespace msgId
