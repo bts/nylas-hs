@@ -38,15 +38,12 @@ consumeDeltas
   -> Cursor
   -> Consumer Delta IO ()
   -> IO () -- TODO: this should probably return a Cursor
-  -- -> IO (Either (A.DecodingError, Producer PB.ByteString IO ()) ())
 consumeDeltas t n (Cursor c) consumer = do
   req <- parseUrl (deltaStreamUrl n <> "?cursor=" <> c)
   let authdReq = authenticatedReq t req
   withManager tlsManagerSettings $ \m ->
     withHTTP authdReq m $ \resp -> do
-      let body = responseBody resp
-      -- TODO: instead of using pipes-aeson's decoded (directly) here, maybe add
-      -- a preprocessor that looks for an empty newline and stops
+      let body = responseBody resp >-> P.takeWhile (/= "\n")
       let deltas = view AU.decoded body >> return ()
       runEffect $ deltas >-> consumer
 
