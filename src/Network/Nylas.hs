@@ -33,36 +33,43 @@ authenticatedReq :: AccessToken -> Request -> Request
 authenticatedReq (AccessToken t) r = applyBasicAuth (B.pack t) (B.pack "") r
 
 consumeDeltas
-  :: AccessToken
+  :: Manager
+  -> AccessToken
   -> Namespace
   -> Cursor
   -> Consumer Delta IO ()
-  -> IO () -- TODO: this should probably return a Cursor
-consumeDeltas t n (Cursor c) consumer = do
+  -> IO () -- TODO: this should probably return a Cursor?
+consumeDeltas m t n (Cursor c) consumer = do
   req <- parseUrl (deltaStreamUrl n <> "?cursor=" <> c)
   let authdReq = authenticatedReq t req
-  withManager tlsManagerSettings $ \m ->
-    withHTTP authdReq m $ \resp -> do
-      let body = responseBody resp >-> P.takeWhile (/= "\n")
-      let deltas = view AU.decoded body >> return ()
-      runEffect $ deltas >-> consumer
+  withHTTP authdReq m $ \resp -> do
+    let body = responseBody resp >-> P.takeWhile (/= "\n")
+    let deltas = view AU.decoded body >> return ()
+    runEffect $ deltas >-> consumer
 
 messageUrl :: Namespace -> NylasId -> Url
 messageUrl (Namespace n) (NylasId i) = "https://api.nylas.com/n/" <> n <> "/messages/" <> i
 
-getMessage :: AccessToken -> Namespace -> NylasId -> IO Message
-getMessage t n i = (^. W.responseBody) <$> (W.getWith opts url >>= W.asJSON)
+getMessage
+  :: Manager
+  -> AccessToken
+  -> Namespace
+  -> NylasId
+  -> IO Message
+getMessage mgr t n i = (^. W.responseBody) <$> (W.getWith opts url >>= W.asJSON)
   where opts = W.defaults & authenticatedOpts t
+                          & W.manager .~ Right mgr
         url = messageUrl n i
 
 main :: IO ()
 main = do
+  mgr <- newManager tlsManagerSettings
   let token = AccessToken "C8SbrcFVIgnEQi8RdS9beNKnixtEcT"
   let namespace = Namespace "d1z6pzjd1qvalej8bd51abun9"
   let cursor = Cursor "6h6g1xq4d930ja9375mprv6d0"
 
-  consumeDeltas token namespace cursor (P.map show >-> P.stdoutLn)
+  consumeDeltas mgr token namespace cursor (P.map show >-> P.stdoutLn)
 
   let msgId = NylasId "b38i00l4f6qziwl154f57oi1o"
-  msg <- getMessage token namespace msgId
+  msg <- getMessage mgr token namespace msgId
   putStrLn $ show msg
