@@ -22,8 +22,8 @@ instance FromJSON NylasId
 
 data Mailbox
   = Mailbox
-  { _mailboxName :: String
-  , _mailboxEmail :: String
+  { _mailboxName :: Text
+  , _mailboxEmail :: Text
   } deriving (Eq, Show)
 
 instance FromJSON Mailbox where
