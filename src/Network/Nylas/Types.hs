@@ -5,7 +5,10 @@ module Network.Nylas.Types where
 
 import Control.Applicative
 import Data.Aeson
+import Data.Aeson.Types (Parser)
 import Data.Text (Text)
+import Data.Time.Clock (UTCTime)
+import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import GHC.Generics (Generic)
 
 type Url = String
@@ -17,16 +20,38 @@ newtype NylasId = NylasId String deriving (Eq, Show, Generic)
 instance FromJSON Cursor
 instance FromJSON NylasId
 
+data Mailbox
+  = Mailbox
+  { _mailboxName :: String
+  , _mailboxEmail :: String
+  } deriving (Eq, Show)
+
+instance FromJSON Mailbox where
+  parseJSON (Object v) =
+    Mailbox <$> v .: "name"
+            <*> v .: "email"
+  parseJSON _ = empty
+
 data Message
    = Message
    { _messageId :: NylasId
    , _messageSubject :: Text
+   , _messageSenders :: [Mailbox]
+   , _messageToRecipients :: [Mailbox]
+   , _messageCcRecipients :: [Mailbox]
+   , _messageBccRecipients :: [Mailbox]
+   , _messageDate :: UTCTime
    } deriving (Eq, Show)
 
 instance FromJSON Message where
   parseJSON (Object v) =
     Message <$> v .: "id"
             <*> v .: "subject"
+            <*> v .: "from"
+            <*> v .: "to"
+            <*> v .: "cc"
+            <*> v .: "bcc"
+            <*> fmap (posixSecondsToUTCTime . fromIntegral) ((v .: "date") :: Parser Int)
             -- TODO: more
   parseJSON _ = empty
 
