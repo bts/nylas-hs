@@ -31,7 +31,7 @@ consumeDeltas
   -> Namespace
   -> Cursor
   -> Consumer Delta IO ()
-  -> IO () -- TODO: this should probably return a Cursor?
+  -> IO ()
 consumeDeltas m t n (Cursor c) consumer = do
   req <- parseUrl (deltaStreamUrl n <> "?cursor=" <> c)
   let authdReq = authenticatedReq t req
