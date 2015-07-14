@@ -32,6 +32,24 @@ instance FromJSON Mailbox where
             <*> v .: "email"
   parseJSON _ = empty
 
+data File
+   = File
+   { _fileId :: NylasId
+   , _fileContentType :: Text
+   , _fileName :: Text
+   , _fileSize :: Int
+   , _fileContentId :: Text
+   } deriving (Eq, Show)
+
+instance FromJSON File where
+  parseJSON (Object v) =
+    File <$> v .: "id"
+         <*> v .: "content_type"
+         <*> v .: "filename"
+         <*> v .: "size"
+         <*> v .: "content_id"
+  parseJSON _ = empty
+
 data Message
    = Message
    { _messageId :: NylasId
@@ -41,6 +59,8 @@ data Message
    , _messageCcRecipients :: [Mailbox]
    , _messageBccRecipients :: [Mailbox]
    , _messageDate :: UTCTime
+   , _messageThreadId :: NylasId
+   , _messageFiles :: [File]
    } deriving (Eq, Show)
 
 instance FromJSON Message where
@@ -52,6 +72,8 @@ instance FromJSON Message where
             <*> v .: "cc"
             <*> v .: "bcc"
             <*> fmap (posixSecondsToUTCTime . fromIntegral) ((v .: "date") :: Parser Int)
+            <*> v .: "thread_id"
+            <*> v .: "files"
             -- TODO: more
   parseJSON _ = empty
 
