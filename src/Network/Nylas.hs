@@ -49,7 +49,7 @@ getMessage
   -> Namespace
   -> NylasId
   -> IO Message
-getMessage mgr t n i = (^. W.responseBody) <$> (W.getWith opts url >>= W.asJSON)
+getMessage mgr t n i = (^. W.responseBody) <$> (W.asJSON =<< W.getWith opts url)
   where opts = W.defaults & authenticatedOpts t
                           & W.manager .~ Right mgr
         url = messageUrl n i
