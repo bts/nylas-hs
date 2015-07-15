@@ -7,6 +7,7 @@ import qualified Data.ByteString.Char8 as B
 import           Data.Monoid
 import qualified Network.Wreq as W
 import           Pipes
+import           Pipes.Aeson (DecodingError)
 import qualified Pipes.Aeson.Unchecked as AU
 import qualified Pipes.Prelude as P
 import           Pipes.HTTP
@@ -30,14 +31,14 @@ consumeDeltas
   -> AccessToken
   -> Namespace
   -> Cursor
-  -> Consumer Delta IO ()
-  -> IO ()
+  -> Consumer Delta IO (Either (DecodingError, Producer B.ByteString IO ()) ())
+  -> IO (Either (DecodingError, Producer B.ByteString IO ()) ())
 consumeDeltas m t n (Cursor c) consumer = do
   req <- parseUrl (deltaStreamUrl n <> "?cursor=" <> c)
   let authdReq = authenticatedReq t req
   withHTTP authdReq m $ \resp -> do
     let body = responseBody resp >-> P.takeWhile (/= "\n")
-    let deltas = view AU.decoded body >> return ()
+    let deltas = view AU.decoded body
     runEffect $ deltas >-> consumer
 
 messageUrl :: Namespace -> NylasId -> Url
@@ -59,9 +60,16 @@ main = do
   mgr <- newManager tlsManagerSettings
   let token = AccessToken "C8SbrcFVIgnEQi8RdS9beNKnixtEcT"
   let namespace = Namespace "d1z6pzjd1qvalej8bd51abun9"
-  let cursor = Cursor "6h6g1xq4d930ja9375mprv6d0"
+  let cursor = Cursor "0"
+  --let cursor = Cursor "3h840erkx2ctyfbdqbe60pcc0"
 
-  consumeDeltas mgr token namespace cursor (P.map show >-> P.stdoutLn)
+  res <- consumeDeltas mgr token namespace cursor (P.map show >-> P.print)
+  case res of
+    Left (err, remainder) -> do
+      putStrLn $ "ERROR: " <> show err
+      putStrLn $ "next few items:"
+      runEffect $ remainder >-> (P.take 5) >-> (P.map B.unpack) >-> P.stdoutLn
+    Right _ -> return ()
 
-  let msgId = NylasId "b38i00l4f6qziwl154f57oi1o"
-  putStrLn . show =<< getMessage mgr token namespace msgId
+  --let msgId = NylasId "b38i00l4f6qziwl154f57oi1o"
+  --putStrLn . show =<< getMessage mgr token namespace msgId
