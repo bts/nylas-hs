@@ -50,6 +50,10 @@ instance FromJSON File where
          <*> v .:? "content_id"
   parseJSON _ = empty
 
+newtype MessageUnread = MessageUnread Bool deriving (Eq, Show, Generic)
+
+instance FromJSON MessageUnread
+
 data Message
    = Message
    { _messageId :: NylasId
@@ -61,6 +65,9 @@ data Message
    , _messageDate :: UTCTime
    , _messageThreadId :: NylasId
    , _messageFiles :: [File]
+   , _messageSnippet :: Text
+   , _messageBody :: Text
+   , _messageUnread :: MessageUnread
    } deriving (Eq, Show)
 
 instance FromJSON Message where
@@ -74,7 +81,9 @@ instance FromJSON Message where
             <*> fmap (posixSecondsToUTCTime . fromIntegral) ((v .: "date") :: Parser Int)
             <*> v .: "thread_id"
             <*> v .: "files"
-            -- TODO: more
+            <*> v .: "snippet"
+            <*> v .: "body"
+            <*> v .: "unread"
   parseJSON _ = empty
 
 data DeltaObject
