@@ -38,7 +38,7 @@ data File
    , _fileContentType :: Text
    , _fileName :: Text
    , _fileSize :: Int
-   , _fileContentId :: Text
+   , _fileContentId :: Maybe Text
    } deriving (Eq, Show)
 
 instance FromJSON File where
@@ -47,7 +47,7 @@ instance FromJSON File where
          <*> v .: "content_type"
          <*> v .: "filename"
          <*> v .: "size"
-         <*> v .: "content_id"
+         <*> v .:? "content_id"
   parseJSON _ = empty
 
 data Message
