@@ -50,6 +50,12 @@ instance FromJSON File where
          <*> v .:? "content_id"
   parseJSON _ = empty
 
+newtype MessageTime = MessageTime UTCTime deriving (Eq, Show, Generic)
+
+instance FromJSON MessageTime where
+  parseJSON n = (MessageTime . posixSecondsToUTCTime . fromIntegral) <$>
+                (parseJSON n :: Parser Int)
+
 newtype MessageUnread = MessageUnread Bool deriving (Eq, Show, Generic)
 
 instance FromJSON MessageUnread
@@ -62,7 +68,7 @@ data Message
    , _messageToRecipients :: [Mailbox]
    , _messageCcRecipients :: [Mailbox]
    , _messageBccRecipients :: [Mailbox]
-   , _messageDate :: UTCTime
+   , _messageDate :: MessageTime
    , _messageThreadId :: NylasId
    , _messageFiles :: [File]
    , _messageSnippet :: Text
@@ -78,7 +84,7 @@ instance FromJSON Message where
             <*> v .: "to"
             <*> v .: "cc"
             <*> v .: "bcc"
-            <*> fmap (posixSecondsToUTCTime . fromIntegral) ((v .: "date") :: Parser Int)
+            <*> v .: "date"
             <*> v .: "thread_id"
             <*> v .: "files"
             <*> v .: "snippet"
