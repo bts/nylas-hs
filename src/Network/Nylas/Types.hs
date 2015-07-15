@@ -8,6 +8,7 @@ import Control.Applicative
 import Control.Lens
 import Data.Aeson
 import Data.Aeson.Types (Parser)
+import Data.Monoid ((<>))
 import Data.Text (Text)
 import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
@@ -93,6 +94,11 @@ data Message
    } deriving (Eq, Show)
 
 makeLenses ''Message
+
+recipients :: Message -> [Mailbox]
+recipients m = m^.messageToRecipients <>
+               m^.messageCcRecipients <>
+               m^.messageBccRecipients
 
 instance FromJSON Message where
   parseJSON (Object v) =
