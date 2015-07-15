@@ -59,7 +59,7 @@ main :: IO ()
 main = do
   mgr <- newManager tlsManagerSettings
   let token = AccessToken "C8SbrcFVIgnEQi8RdS9beNKnixtEcT"
-  let namespace = Namespace "d1z6pzjd1qvalej8bd51abun9"
+  let ns = Namespace "d1z6pzjd1qvalej8bd51abun9"
   --let cursor = Cursor "0"
   --let cursor = Cursor "3h840erkx2ctyfbdqbe60pcc0"
 
@@ -72,4 +72,5 @@ main = do
   --   Right _ -> return ()
 
   let msgId = NylasId "b38i00l4f6qziwl154f57oi1o"
-  putStrLn . show =<< getMessage mgr token namespace msgId
+  msg <- getMessage mgr token ns msgId
+  putStrLn . show $ msg
