@@ -4,6 +4,8 @@
 
 module Network.Nylas.Types where
 
+import Prelude
+
 import Control.Applicative
 import Control.Lens
 import Data.Aeson

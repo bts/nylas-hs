@@ -20,7 +20,7 @@ source-repository head
   location: git://github.com/bts/nylas.git
 
 library
-  exposed-modules:     Network.Nylas, Network.Nylas.Types
+  exposed-modules:     Network.Nylas, Network.Nylas.Client, Network.Nylas.Types
   build-depends:       aeson >= 0.8              && < 0.10
                      , base >= 4.8               && < 4.9
                      , bytestring >= 0.10.6.0    && < 0.11
