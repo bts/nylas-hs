@@ -10,6 +10,8 @@ import           Prelude
 import           Control.Lens hiding (each)
 import qualified Data.ByteString.Char8 as B
 import           Data.Monoid
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as E
 import qualified Network.Wreq as W
 import           Pipes
 import           Pipes.Aeson (DecodingError)
@@ -20,16 +22,16 @@ import           Pipes.HTTP
 import Network.Nylas.Types
 
 deltasUrl :: Namespace -> Url
-deltasUrl (Namespace n) = "https://api.nylas.com/n/" <> n <> "/delta"
+deltasUrl (Namespace n) = T.unpack $ "https://api.nylas.com/n/" <> n <> "/delta"
 
 deltaStreamUrl :: Namespace -> Url
-deltaStreamUrl (Namespace n) = "https://api.nylas.com/n/" <> n <> "/delta/streaming"
+deltaStreamUrl (Namespace n) = T.unpack $ "https://api.nylas.com/n/" <> n <> "/delta/streaming"
 
 authenticatedOpts :: AccessToken -> W.Options -> W.Options
-authenticatedOpts (AccessToken t) = W.auth ?~ W.basicAuth (B.pack t) ""
+authenticatedOpts (AccessToken t) = W.auth ?~ W.basicAuth (E.encodeUtf8 t) ""
 
 authenticatedReq :: AccessToken -> Request -> Request
-authenticatedReq (AccessToken t) r = applyBasicAuth (B.pack t) (B.pack "") r
+authenticatedReq (AccessToken t) r = applyBasicAuth (E.encodeUtf8 t) (E.encodeUtf8 "") r
 
 consumeDeltas
   :: Manager
@@ -39,7 +41,7 @@ consumeDeltas
   -> Consumer Delta IO (Either (DecodingError, Producer B.ByteString IO ()) ())
   -> IO (Either (DecodingError, Producer B.ByteString IO ()) ())
 consumeDeltas m t n (Cursor c) consumer = do
-  req <- parseUrl (deltaStreamUrl n <> "?cursor=" <> c)
+  req <- parseUrl (deltaStreamUrl n <> "?cursor=" <> (T.unpack c))
   let authdReq = authenticatedReq t req
   withHTTP authdReq m $ \resp -> do
     let body = responseBody resp >-> P.takeWhile (/= "\n")
@@ -47,7 +49,7 @@ consumeDeltas m t n (Cursor c) consumer = do
     runEffect $ deltas >-> consumer
 
 messageUrl :: Namespace -> NylasId -> Url
-messageUrl (Namespace n) (NylasId i) = "https://api.nylas.com/n/" <> n <> "/messages/" <> i
+messageUrl (Namespace n) (NylasId i) = T.unpack $ "https://api.nylas.com/n/" <> n <> "/messages/" <> i
 
 getMessage
   :: Manager

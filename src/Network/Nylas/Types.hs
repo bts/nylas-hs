@@ -18,10 +18,10 @@ import GHC.Generics (Generic)
 
 type Url = String
 
-newtype AccessToken = AccessToken String deriving (Eq, Show)
-newtype Cursor = Cursor String deriving (Eq, Show, Generic)
-newtype Namespace = Namespace String deriving (Eq, Show)
-newtype NylasId = NylasId String deriving (Eq, Show, Generic)
+newtype AccessToken = AccessToken Text deriving (Eq, Show)
+newtype Cursor = Cursor Text deriving (Eq, Show, Generic)
+newtype Namespace = Namespace Text deriving (Eq, Show)
+newtype NylasId = NylasId Text deriving (Eq, Show, Generic)
 
 makeLenses ''AccessToken
 makeLenses ''Cursor
