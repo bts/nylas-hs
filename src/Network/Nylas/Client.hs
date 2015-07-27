@@ -67,17 +67,17 @@ main = do
   mgr <- newManager tlsManagerSettings
   let token = AccessToken "C8SbrcFVIgnEQi8RdS9beNKnixtEcT"
   let ns = Namespace "d1z6pzjd1qvalej8bd51abun9"
-  --let cursor = Cursor "0"
-  --let cursor = Cursor "3h840erkx2ctyfbdqbe60pcc0"
 
-  -- res <- consumeDeltas mgr token namespace cursor (P.map show >-> P.print)
-  -- case res of
-  --   Left (err, remainder) -> do
-  --     putStrLn $ "ERROR: " <> show err
-  --     putStrLn $ "next few items:"
-  --     runEffect $ remainder >-> (P.take 5) >-> (P.map B.unpack) >-> P.stdoutLn
-  --   Right _ -> return ()
+  let cursor = Cursor "0"
+  -- let cursor = Cursor "3h840erkx2ctyfbdqbe60pcc0"
+  res <- consumeDeltas mgr token ns cursor (P.map show >-> P.print)
+  case res of
+    Left (err, remainder) -> do
+      putStrLn $ "ERROR: " <> show err
+      putStrLn $ "next few items:"
+      runEffect $ remainder >-> (P.take 3) >-> (P.map B.unpack) >-> P.stdoutLn
+    Right _ -> return ()
 
-  let msgId = NylasId "b38i00l4f6qziwl154f57oi1o"
-  msg <- getMessage mgr token ns msgId
-  putStrLn . show $ msg
+  -- let msgId = NylasId "b38i00l4f6qziwl154f57oi1o"
+  -- msg <- getMessage mgr token ns msgId
+  -- putStrLn . show $ msg

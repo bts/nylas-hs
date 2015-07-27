@@ -33,7 +33,7 @@ instance FromJSON NylasId
 
 data Mailbox
   = Mailbox
-  { _mailboxName :: Text
+  { _mailboxName :: Text -- TODO: make this Maybe Text
   , _mailboxEmail :: Text
   } deriving (Eq, Show)
 
@@ -118,6 +118,50 @@ instance FromJSON Message where
             <*> v .: "unread"
   parseJSON _ = empty
 
+data Tag
+  = Tag
+  { _tagId :: NylasId
+  , _tagName :: Text
+  } deriving (Eq, Show)
+
+makeLenses ''Tag
+
+instance FromJSON Tag where
+  parseJSON (Object v) =
+    Tag <$> v .: "id"
+        <*> v .: "name"
+  parseJSON _ = empty
+
+data Thread
+  = Thread
+  { _threadId :: NylasId
+  , _threadSubject :: Text
+  , _threadFirstTimestamp :: MessageTime
+  , _threadLastTimestamp :: MessageTime
+  , _threadParticipants :: [Mailbox]
+  , _threadSnippet :: Text
+  , _threadTags :: [Tag]
+  , _threadMessageIds :: [NylasId]
+  , _threadDraftIds :: [NylasId]
+  , _threadVersion :: Int
+  } deriving (Eq, Show)
+
+makeLenses ''Thread
+
+instance FromJSON Thread where
+  parseJSON (Object v) =
+    Thread <$> v .: "id"
+           <*> v .: "subject"
+           <*> v .: "first_message_timestamp"
+           <*> v .: "last_message_timestamp"
+           <*> v .: "participants"
+           <*> v .: "snippet"
+           <*> v .: "tags"
+           <*> v .: "message_ids"
+           <*> v .: "draft_ids"
+           <*> v .: "version"
+  parseJSON _ = empty
+
 data DeltaObject
   = DeltaCalendar
   | DeltaContact
@@ -125,7 +169,7 @@ data DeltaObject
   | DeltaFile
   | DeltaMessage Message
   | DeltaTag
-  | DeltaThread
+  | DeltaThread Thread
   deriving (Eq, Show)
 
 makePrisms ''DeltaObject
@@ -140,7 +184,7 @@ instance FromJSON DeltaObject where
       "file" -> pure DeltaFile
       "message" -> DeltaMessage <$> (parseJSON o)
       "tag" -> pure DeltaTag
-      "thread" -> pure DeltaThread
+      "thread" -> DeltaThread <$> (parseJSON o)
       _ -> empty
   parseJSON _ = empty
 
