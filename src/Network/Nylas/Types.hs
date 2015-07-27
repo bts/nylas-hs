@@ -33,7 +33,7 @@ instance FromJSON NylasId
 
 data Mailbox
   = Mailbox
-  { _mailboxName :: Text -- TODO: make this Maybe Text
+  { _mailboxName :: Maybe Text
   , _mailboxEmail :: Text
   } deriving (Eq, Show)
 
@@ -41,8 +41,11 @@ makeLenses ''Mailbox
 
 instance FromJSON Mailbox where
   parseJSON (Object v) =
-    Mailbox <$> v .: "name"
+    Mailbox <$> fmap nonEmpty (v .: "name")
             <*> v .: "email"
+    where
+      nonEmpty "" = Nothing
+      nonEmpty str = Just str
   parseJSON _ = empty
 
 data File
