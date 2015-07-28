@@ -9,20 +9,17 @@ import           Prelude
 
 import           Control.Lens hiding (each)
 import qualified Data.ByteString.Char8 as B
-import           Data.Monoid
+import           Data.Monoid ((<>))
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as E
 import qualified Network.Wreq as W
-import           Pipes
+import           Pipes ((>->), Consumer, Producer, runEffect)
 import           Pipes.Aeson (DecodingError)
 import qualified Pipes.Aeson.Unchecked as AU
 import qualified Pipes.Prelude as P
-import           Pipes.HTTP
+import           Pipes.HTTP (Request, Manager, applyBasicAuth, parseUrl, responseBody, withHTTP)
 
 import Network.Nylas.Types
-
-deltasUrl :: Namespace -> Url
-deltasUrl (Namespace n) = T.unpack $ "https://api.nylas.com/n/" <> n <> "/delta"
 
 deltaStreamUrl :: Namespace -> Url
 deltaStreamUrl (Namespace n) = T.unpack $ "https://api.nylas.com/n/" <> n <> "/delta/streaming"
@@ -61,23 +58,3 @@ getMessage mgr t n i = (^. W.responseBody) <$> (W.asJSON =<< W.getWith opts url)
   where opts = W.defaults & authenticatedOpts t
                           & W.manager .~ Right mgr
         url = messageUrl n i
-
-main :: IO ()
-main = do
-  mgr <- newManager tlsManagerSettings
-  let token = AccessToken "C8SbrcFVIgnEQi8RdS9beNKnixtEcT"
-  let ns = Namespace "d1z6pzjd1qvalej8bd51abun9"
-
-  let cursor = Cursor "0"
-  -- let cursor = Cursor "3h840erkx2ctyfbdqbe60pcc0"
-  res <- consumeDeltas mgr token ns cursor (P.map show >-> P.print)
-  case res of
-    Left (err, remainder) -> do
-      putStrLn $ "ERROR: " <> show err
-      putStrLn $ "next few items:"
-      runEffect $ remainder >-> (P.take 3) >-> (P.map B.unpack) >-> P.stdoutLn
-    Right _ -> return ()
-
-  -- let msgId = NylasId "b38i00l4f6qziwl154f57oi1o"
-  -- msg <- getMessage mgr token ns msgId
-  -- putStrLn . show $ msg
