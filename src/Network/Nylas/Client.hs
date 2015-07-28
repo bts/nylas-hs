@@ -3,6 +3,7 @@
 module Network.Nylas.Client
        ( consumeDeltas
        , getMessage
+       , getThread
        ) where
 
 import           Prelude
@@ -58,3 +59,17 @@ getMessage mgr t n i = (^. W.responseBody) <$> (W.asJSON =<< W.getWith opts url)
   where opts = W.defaults & authenticatedOpts t
                           & W.manager .~ Right mgr
         url = messageUrl n i
+
+threadUrl :: Namespace -> NylasId -> Url
+threadUrl (Namespace n) (NylasId i) = T.unpack $ "https://api.nylas.com/n/" <> n <> "/threads/" <> i
+
+getThread
+  :: Manager
+  -> AccessToken
+  -> Namespace
+  -> NylasId
+  -> IO Thread
+getThread mgr t n i = (^. W.responseBody) <$> (W.asJSON =<< W.getWith opts url)
+  where opts = W.defaults & authenticatedOpts t
+                          & W.manager .~ Right mgr
+        url = threadUrl n i
