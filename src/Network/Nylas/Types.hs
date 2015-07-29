@@ -21,7 +21,7 @@ type Url = String
 newtype AccessToken = AccessToken Text deriving (Eq, Show)
 newtype Cursor = Cursor Text deriving (Eq, Show, Generic)
 newtype Namespace = Namespace Text deriving (Eq, Show)
-newtype NylasId = NylasId Text deriving (Eq, Show, Generic)
+newtype NylasId = NylasId { _nylasId :: Text } deriving (Eq, Show, Generic)
 
 makeLenses ''AccessToken
 makeLenses ''Cursor
@@ -68,7 +68,7 @@ instance FromJSON File where
          <*> v .:? "content_id"
   parseJSON _ = empty
 
-newtype MessageTime = MessageTime UTCTime deriving (Eq, Show, Generic)
+newtype MessageTime = MessageTime { _utcTime :: UTCTime } deriving (Eq, Show, Generic)
 
 makeLenses ''MessageTime
 
