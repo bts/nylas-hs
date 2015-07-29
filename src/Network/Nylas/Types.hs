@@ -23,13 +23,13 @@ newtype Cursor = Cursor Text deriving (Eq, Show, Generic)
 newtype Namespace = Namespace Text deriving (Eq, Show)
 newtype NylasId = NylasId { _nylasId :: Text } deriving (Eq, Show, Generic)
 
-makeLenses ''AccessToken
-makeLenses ''Cursor
-makeLenses ''Namespace
 makeLenses ''NylasId
 
 instance FromJSON Cursor
-instance FromJSON NylasId
+
+instance FromJSON NylasId where
+  parseJSON (String s) = pure $ NylasId s
+  parseJSON _ = empty
 
 data Mailbox
   = Mailbox
