@@ -82,6 +82,38 @@ makeLenses ''MessageUnread
 
 instance FromJSON MessageUnread
 
+data Label
+  = Label
+  { _labelId :: NylasId
+  , _labelName :: Text
+  , _labelDisplayName :: Text
+  } deriving (Eq, Show)
+
+makeLenses ''Label
+
+instance FromJSON Label where
+  parseJSON (Object v) =
+    Label <$> v .: "id"
+          <*> v .: "name"
+          <*> v .: "display_name"
+  parseJSON _ = empty
+
+data Folder
+  = Folder
+  { _folderId :: NylasId
+  , _folderName :: Text
+  , _folderDisplayName :: Text
+  } deriving (Eq, Show)
+
+makeLenses ''Folder
+
+instance FromJSON Folder where
+  parseJSON (Object v) =
+    Folder <$> v .: "id"
+           <*> v .: "name"
+           <*> v .: "display_name"
+  parseJSON _ = empty
+
 data Message
    = Message
    { _messageId :: NylasId
@@ -94,6 +126,11 @@ data Message
    , _messageThreadId :: NylasId
    , _messageFiles :: [File]
    , _messageSnippet :: Text
+   --
+   -- TODO: possibly combine these into a sum type:
+   --
+   , _messageLabels :: Maybe [Label]
+   , _messageFolder :: Maybe Folder
    , _messageBody :: Text
    , _messageUnread :: MessageUnread
    } deriving (Eq, Show)
@@ -117,22 +154,10 @@ instance FromJSON Message where
             <*> v .: "thread_id"
             <*> v .: "files"
             <*> v .: "snippet"
+            <*> v .:? "labels"
+            <*> v .:? "folder"
             <*> v .: "body"
             <*> v .: "unread"
-  parseJSON _ = empty
-
-data Tag
-  = Tag
-  { _tagId :: NylasId
-  , _tagName :: Text
-  } deriving (Eq, Show)
-
-makeLenses ''Tag
-
-instance FromJSON Tag where
-  parseJSON (Object v) =
-    Tag <$> v .: "id"
-        <*> v .: "name"
   parseJSON _ = empty
 
 data Thread
@@ -143,7 +168,11 @@ data Thread
   , _threadLastTimestamp :: MessageTime
   , _threadParticipants :: [Mailbox]
   , _threadSnippet :: Text
-  , _threadTags :: [Tag]
+  --
+  -- TODO: possibly combine these into a sum type:
+  --
+  , _threadLabels :: Maybe [Label]
+  , _threadFolders :: Maybe [Folder]
   , _threadMessageIds :: [NylasId]
   , _threadDraftIds :: [NylasId]
   , _threadVersion :: Int
@@ -159,7 +188,8 @@ instance FromJSON Thread where
            <*> v .: "last_message_timestamp"
            <*> v .: "participants"
            <*> v .: "snippet"
-           <*> v .: "tags"
+           <*> v .:? "labels"
+           <*> v .:? "folders"
            <*> v .: "message_ids"
            <*> v .: "draft_ids"
            <*> v .: "version"
@@ -171,8 +201,10 @@ data DeltaObject
   | DeltaEvent
   | DeltaFile
   | DeltaMessage Message
-  | DeltaTag
+  | DeltaDraft
   | DeltaThread Thread
+  | DeltaLabel
+  | DeltaFolder
   deriving (Eq, Show)
 
 makePrisms ''DeltaObject
@@ -186,8 +218,10 @@ instance FromJSON DeltaObject where
       "event" -> pure DeltaEvent
       "file" -> pure DeltaFile
       "message" -> DeltaMessage <$> (parseJSON o)
-      "tag" -> pure DeltaTag
+      "draft" -> pure DeltaDraft
       "thread" -> DeltaThread <$> (parseJSON o)
+      "label" -> pure DeltaLabel
+      "folder" -> pure DeltaFolder
       _ -> empty
   parseJSON _ = empty
 
