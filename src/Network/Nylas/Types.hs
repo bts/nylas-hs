@@ -142,7 +142,6 @@ data Message
    , _messageBody :: Text
    , _messageReadStatus :: ReadStatus
    , _messageStarred :: StarStatus
-   -- TODO: messageHasAttachments
    } deriving (Eq, Show)
 
 makeLenses ''Message
@@ -175,6 +174,17 @@ instance FromJSON Message where
       fromUnread False = MessageRead
   parseJSON _ = empty
 
+data AttachmentsStatus = HasAttachments
+                       | NoAttachments
+                       deriving (Eq, Show)
+
+makePrisms ''AttachmentsStatus
+
+instance FromJSON AttachmentsStatus where
+  parseJSON (Bool True) = pure HasAttachments
+  parseJSON (Bool False) = pure NoAttachments
+  parseJSON _ = empty
+
 data Thread
   = Thread
   { _threadId :: NylasId
@@ -189,6 +199,7 @@ data Thread
   , _threadDraftIds :: [NylasId]
   , _threadVersion :: Int
   , _threadStarred :: StarStatus
+  , _threadHasAttachments :: AttachmentsStatus
   } deriving (Eq, Show)
 
 makeLenses ''Thread
@@ -207,6 +218,7 @@ instance FromJSON Thread where
            <*> v .: "draft_ids"
            <*> v .: "version"
            <*> v .: "starred"
+           <*> v .: "has_attachments"
   parseJSON _ = empty
 
 data DeltaObject
