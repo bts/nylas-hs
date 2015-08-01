@@ -82,6 +82,17 @@ data ReadStatus = MessageRead
 
 makePrisms ''ReadStatus
 
+data StarStatus = Starred
+                | Unstarred
+                deriving (Eq, Show)
+
+makePrisms ''StarStatus
+
+instance FromJSON StarStatus where
+  parseJSON (Bool True) = pure Starred
+  parseJSON (Bool False) = pure Unstarred
+  parseJSON _ = empty
+
 data Label
   = Label
   { _labelId :: NylasId
@@ -130,7 +141,7 @@ data Message
    , _messageFolder :: Maybe Folder
    , _messageBody :: Text
    , _messageReadStatus :: ReadStatus
-   -- TODO: messageStarred
+   , _messageStarred :: StarStatus
    -- TODO: messageHasAttachments
    } deriving (Eq, Show)
 
@@ -157,6 +168,7 @@ instance FromJSON Message where
             <*> v .:? "folder"
             <*> v .: "body"
             <*> fmap fromUnread (v .: "unread")
+            <*> v .: "starred"
     where
       fromUnread :: Bool -> ReadStatus
       fromUnread True = MessageUnread
@@ -176,7 +188,7 @@ data Thread
   , _threadMessageIds :: [NylasId]
   , _threadDraftIds :: [NylasId]
   , _threadVersion :: Int
-  -- TODO: threadStarred
+  , _threadStarred :: StarStatus
   } deriving (Eq, Show)
 
 makeLenses ''Thread
@@ -194,6 +206,7 @@ instance FromJSON Thread where
            <*> v .: "message_ids"
            <*> v .: "draft_ids"
            <*> v .: "version"
+           <*> v .: "starred"
   parseJSON _ = empty
 
 data DeltaObject
