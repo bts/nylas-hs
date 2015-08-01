@@ -76,11 +76,11 @@ instance FromJSON MessageTime where
   parseJSON n = (MessageTime . posixSecondsToUTCTime . fromIntegral) <$>
                 (parseJSON n :: Parser Int)
 
-data MessageReadStatus = MessageRead
-                       | MessageUnread
-                       deriving (Eq, Show)
+data ReadStatus = MessageRead
+                | MessageUnread
+                deriving (Eq, Show)
 
-makePrisms ''MessageReadStatus
+makePrisms ''ReadStatus
 
 data Label
   = Label
@@ -129,7 +129,7 @@ data Message
    , _messageLabels :: Maybe [Label]
    , _messageFolder :: Maybe Folder
    , _messageBody :: Text
-   , _messageReadStatus :: MessageReadStatus
+   , _messageReadStatus :: ReadStatus
    -- TODO: messageStarred
    -- TODO: messageHasAttachments
    } deriving (Eq, Show)
@@ -158,7 +158,7 @@ instance FromJSON Message where
             <*> v .: "body"
             <*> fmap fromUnread (v .: "unread")
     where
-      fromUnread :: Bool -> MessageReadStatus
+      fromUnread :: Bool -> ReadStatus
       fromUnread True = MessageUnread
       fromUnread False = MessageRead
   parseJSON _ = empty
