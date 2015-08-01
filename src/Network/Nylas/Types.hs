@@ -76,11 +76,11 @@ instance FromJSON MessageTime where
   parseJSON n = (MessageTime . posixSecondsToUTCTime . fromIntegral) <$>
                 (parseJSON n :: Parser Int)
 
-newtype MessageUnread = MessageUnread Bool deriving (Eq, Show, Generic)
+data MessageReadStatus = MessageRead
+                       | MessageUnread
+                       deriving (Eq, Show)
 
-makeLenses ''MessageUnread
-
-instance FromJSON MessageUnread
+makePrisms ''MessageReadStatus
 
 data Label
   = Label
@@ -126,13 +126,12 @@ data Message
    , _messageThreadId :: NylasId
    , _messageFiles :: [File]
    , _messageSnippet :: Text
-   --
-   -- TODO: possibly combine these into a sum type:
-   --
    , _messageLabels :: Maybe [Label]
    , _messageFolder :: Maybe Folder
    , _messageBody :: Text
-   , _messageUnread :: MessageUnread
+   , _messageReadStatus :: MessageReadStatus
+   -- TODO: messageStarred
+   -- TODO: messageHasAttachments
    } deriving (Eq, Show)
 
 makeLenses ''Message
@@ -157,7 +156,11 @@ instance FromJSON Message where
             <*> v .:? "labels"
             <*> v .:? "folder"
             <*> v .: "body"
-            <*> v .: "unread"
+            <*> fmap fromUnread (v .: "unread")
+    where
+      fromUnread :: Bool -> MessageReadStatus
+      fromUnread True = MessageUnread
+      fromUnread False = MessageRead
   parseJSON _ = empty
 
 data Thread
@@ -168,14 +171,12 @@ data Thread
   , _threadLastTimestamp :: MessageTime
   , _threadParticipants :: [Mailbox]
   , _threadSnippet :: Text
-  --
-  -- TODO: possibly combine these into a sum type:
-  --
   , _threadLabels :: Maybe [Label]
   , _threadFolders :: Maybe [Folder]
   , _threadMessageIds :: [NylasId]
   , _threadDraftIds :: [NylasId]
   , _threadVersion :: Int
+  -- TODO: threadStarred
   } deriving (Eq, Show)
 
 makeLenses ''Thread
