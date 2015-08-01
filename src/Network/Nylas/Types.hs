@@ -199,7 +199,7 @@ data Thread
   , _threadDraftIds :: [NylasId]
   , _threadVersion :: Int
   , _threadStarred :: StarStatus
-  , _threadHasAttachments :: AttachmentsStatus
+  , _threadAttachments :: AttachmentsStatus
   } deriving (Eq, Show)
 
 makeLenses ''Thread
