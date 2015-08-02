@@ -133,6 +133,7 @@ data Message
    , _messageToRecipients :: [Mailbox]
    , _messageCcRecipients :: [Mailbox]
    , _messageBccRecipients :: [Mailbox]
+   -- TODO: add support for reply-tos
    , _messageTime :: MessageTime
    , _messageThreadId :: NylasId
    , _messageFiles :: [File]
