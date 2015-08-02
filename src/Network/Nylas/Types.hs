@@ -140,7 +140,7 @@ data Message
    , _messageLabels :: Maybe [Label]
    , _messageFolder :: Maybe Folder
    , _messageBody :: Text
-   , _messageReadStatus :: ReadStatus
+   , _messageRead :: ReadStatus
    , _messageStarred :: StarStatus
    } deriving (Eq, Show)
 
