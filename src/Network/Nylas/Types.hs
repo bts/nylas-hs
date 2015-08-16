@@ -25,13 +25,16 @@ data StreamingError = ParsingError DecodingError (Producer B.ByteString IO ())
 type Url = String
 
 newtype AccessToken = AccessToken Text deriving (Eq, Show)
-newtype Cursor = Cursor Text deriving (Eq, Show, Generic)
+newtype Cursor = Cursor { _cursorId :: Text } deriving (Eq, Show, Generic)
 newtype Namespace = Namespace Text deriving (Eq, Show)
 newtype NylasId = NylasId { _nylasId :: Text } deriving (Eq, Show, Generic)
 
+makeLenses ''Cursor
 makeLenses ''NylasId
 
-instance FromJSON Cursor
+instance FromJSON Cursor where
+  parseJSON (String s) = pure $ Cursor s
+  parseJSON _ = empty
 
 instance FromJSON NylasId where
   parseJSON (String s) = pure $ NylasId s
