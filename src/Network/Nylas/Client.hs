@@ -36,15 +36,21 @@ consumeDeltas
   -> AccessToken
   -> Namespace
   -> Cursor
-  -> Consumer Delta IO (Either (DecodingError, Producer B.ByteString IO ()) ())
-  -> IO (Either (DecodingError, Producer B.ByteString IO ()) ())
+  -> Consumer Delta IO (Either StreamingError ())
+  -> IO (Either StreamingError ())
 consumeDeltas m t n (Cursor c) consumer = do
   req <- parseUrl (deltaStreamUrl n <> "?cursor=" <> (T.unpack c))
   let authdReq = authenticatedReq t req
   withHTTP authdReq m $ \resp -> do
     let body = responseBody resp >-> P.takeWhile (/= "\n")
-    let deltas = view AU.decoded body
+    let deltas = wrapError <$> view AU.decoded body
     runEffect $ deltas >-> consumer
+
+  where
+    wrapError :: Either (DecodingError, Producer B.ByteString IO ()) ()
+              -> Either StreamingError ()
+    wrapError (Left (err, leftovers)) = Left $ ParsingError err leftovers
+    wrapError _ = Right ()
 
 messageUrl :: Namespace -> NylasId -> Url
 messageUrl (Namespace n) (NylasId i) = T.unpack $ "https://api.nylas.com/n/" <> n <> "/messages/" <> i

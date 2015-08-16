@@ -6,15 +6,21 @@ module Network.Nylas.Types where
 
 import Prelude
 
-import Control.Applicative
-import Control.Lens
-import Data.Aeson
-import Data.Aeson.Types (Parser)
-import Data.Monoid ((<>))
-import Data.Text (Text)
-import Data.Time.Clock (UTCTime)
-import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
-import GHC.Generics (Generic)
+import           Control.Applicative
+import           Control.Lens
+import           Data.Aeson
+import           Data.Aeson.Types (Parser)
+import qualified Data.ByteString.Char8 as B
+import           Data.Monoid ((<>))
+import           Data.Text (Text)
+import           Data.Time.Clock (UTCTime)
+import           Data.Time.Clock.POSIX (posixSecondsToUTCTime)
+import           GHC.Generics (Generic)
+import           Pipes (Producer)
+import           Pipes.Aeson (DecodingError)
+
+data StreamingError = ParsingError DecodingError (Producer B.ByteString IO ())
+                    | ConsumerError Text
 
 type Url = String
 
@@ -286,6 +292,8 @@ instance FromJSON Delta where
 
 --
 -- TODO: does pipes-aeson *really* require these instances for stream decoding?
+--       probably only if we continue to use the lens interface, instead of
+--       using their function I.consecutively directly.
 --
 instance ToJSON NylasId
 instance ToJSON Message where
