@@ -284,7 +284,7 @@ data Delta
   { _deltaCursor :: Cursor
   , _deltaOperation :: DeltaOperation
   , _deltaObjectId :: NylasId
-  , _deltaObject :: DeltaObject
+  , _deltaObject :: Maybe DeltaObject
   } deriving (Eq, Show)
 
 makeLenses ''Delta
@@ -294,7 +294,7 @@ instance FromJSON Delta where
     Delta <$> v .: "cursor"
           <*> v .: "event"
           <*> v .: "id"
-          <*> v .: "attributes"
+          <*> v .:? "attributes"
   parseJSON _ = empty
 
 --
