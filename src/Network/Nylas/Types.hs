@@ -235,66 +235,64 @@ instance FromJSON Thread where
            <*> v .: "has_attachments"
   parseJSON _ = empty
 
-data DeltaObject
-  = DeltaCalendar
-  | DeltaContact
-  | DeltaEvent
-  | DeltaFile
-  | DeltaMessage Message
-  | DeltaDraft
-  | DeltaThread Thread
-  | DeltaLabel
-  | DeltaFolder
-  deriving (Eq, Show)
-
-makePrisms ''DeltaObject
-
-instance FromJSON DeltaObject where
-  parseJSON o@(Object v) = do
-    (String objectType) <- v .: "object"
-    case objectType of
-      "calendar" -> pure DeltaCalendar
-      "contact" -> pure DeltaContact
-      "event" -> pure DeltaEvent
-      "file" -> pure DeltaFile
-      "message" -> DeltaMessage <$> (parseJSON o)
-      "draft" -> pure DeltaDraft
-      "thread" -> DeltaThread <$> (parseJSON o)
-      "label" -> pure DeltaLabel
-      "folder" -> pure DeltaFolder
-      _ -> empty
-  parseJSON _ = empty
-
-data DeltaOperation
-  = Create
-  | Modify
+data Change a
+  = Create a
+  | Modify a
   | Delete
   deriving (Eq, Show)
 
-makePrisms ''DeltaOperation
+makePrisms ''Change
 
-instance FromJSON DeltaOperation where
-  parseJSON (String "create") = pure Create
-  parseJSON (String "modify") = pure Modify
-  parseJSON (String "delete") = pure Delete
-  parseJSON _ = empty
+data DeltaChange
+  = CalendarChange
+  | ContactChange
+  | EventChange
+  | FileChange
+  | MessageChange (Change Message)
+  | DraftChange
+  | ThreadChange (Change Thread)
+  | LabelChange
+  | FolderChange
+  deriving (Eq, Show)
+
+makePrisms ''DeltaChange
 
 data Delta
   = Delta
   { _deltaCursor :: Cursor
-  , _deltaOperation :: DeltaOperation
   , _deltaObjectId :: NylasId
-  , _deltaObject :: Maybe DeltaObject
+  , _deltaChange :: DeltaChange
   } deriving (Eq, Show)
 
 makeLenses ''Delta
 
 instance FromJSON Delta where
-  parseJSON (Object v) =
-    Delta <$> v .: "cursor"
-          <*> v .: "event"
-          <*> v .: "id"
-          <*> v .:? "attributes"
+  parseJSON (Object deltaV) = do
+    cursor <- deltaV .: "cursor"
+    nyId <- deltaV .: "id"
+    (String event) <- deltaV .: "event"
+    (String objectType) <- deltaV .: "object"
+    mObjV <- deltaV .:? "attributes"
+    dc <- case objectType of
+      "calendar" -> pure CalendarChange
+      "contact" -> pure ContactChange
+      "event" -> pure EventChange
+      "file" -> pure FileChange
+      "message" -> MessageChange <$> parseChange event mObjV
+      "draft" -> pure DraftChange
+      "thread" -> ThreadChange <$> parseChange event mObjV
+      "label" -> pure LabelChange
+      "folder" -> pure FolderChange
+      _ -> empty
+    return $ Delta cursor nyId dc
+
+    where
+      parseChange :: FromJSON a => Text -> Maybe Value -> Parser (Change a)
+      parseChange "create" (Just objV) = Create <$> parseJSON objV
+      parseChange "modify" (Just objV) = Modify <$> parseJSON objV
+      parseChange "delete" Nothing = pure Delete
+      parseChange _ _ = empty
+
   parseJSON _ = empty
 
 --
