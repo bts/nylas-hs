@@ -8,20 +8,20 @@ module Network.Nylas.Client
 
 import           Prelude
 
-import           Control.Lens hiding (each)
+import           Control.Lens          hiding (each)
 import qualified Data.ByteString.Char8 as B
-import           Data.Monoid ((<>))
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as E
-import qualified Network.Wreq as W
-import           Pipes ((>->), Consumer, Producer, runEffect)
-import           Pipes.Aeson (DecodingError)
+import           Data.Monoid           ((<>))
+import qualified Data.Text             as T
+import qualified Data.Text.Encoding    as E
+import qualified Network.Wreq          as W
+import           Pipes                 (Consumer, Producer, runEffect, (>->))
+import           Pipes.Aeson           (DecodingError)
 import qualified Pipes.Aeson.Unchecked as AU
-import qualified Pipes.Prelude as P
-import           Pipes.HTTP (Request, Manager, applyBasicAuth, parseUrl
-                            , responseBody, withHTTP)
+import           Pipes.HTTP            (Manager, Request, applyBasicAuth,
+                                        parseUrl, responseBody, withHTTP)
+import qualified Pipes.Prelude         as P
 
-import Network.Nylas.Types
+import           Network.Nylas.Types
 
 deltaStreamUrl :: Namespace -> Url
 deltaStreamUrl (Namespace n) =

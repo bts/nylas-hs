@@ -3,5 +3,5 @@ module Network.Nylas
        , module Network.Nylas.Types
        ) where
 
-import Network.Nylas.Client
-import Network.Nylas.Types
+import           Network.Nylas.Client
+import           Network.Nylas.Types

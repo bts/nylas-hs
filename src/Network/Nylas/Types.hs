@@ -1,23 +1,23 @@
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Network.Nylas.Types where
 
-import Prelude
+import           Prelude
 
 import           Control.Applicative
 import           Control.Lens
 import           Data.Aeson
-import           Data.Aeson.Types (Parser)
+import           Data.Aeson.Types      (Parser)
 import qualified Data.ByteString.Char8 as B
-import           Data.Monoid ((<>))
-import           Data.Text (Text)
-import           Data.Time.Clock (UTCTime)
+import           Data.Monoid           ((<>))
+import           Data.Text             (Text)
+import           Data.Time.Clock       (UTCTime)
 import           Data.Time.Clock.POSIX (posixSecondsToUTCTime)
-import           GHC.Generics (Generic)
-import           Pipes (Producer)
-import           Pipes.Aeson (DecodingError)
+import           GHC.Generics          (Generic)
+import           Pipes                 (Producer)
+import           Pipes.Aeson           (DecodingError)
 
 data StreamingError = ParsingError DecodingError (Producer B.ByteString IO ())
                     | ConsumerError Text
@@ -46,7 +46,7 @@ instance FromJSON NylasId where
 
 data Mailbox
   = Mailbox
-  { _mailboxName :: Maybe Text
+  { _mailboxName  :: Maybe Text
   , _mailboxEmail :: Text
   } deriving (Eq, Show)
 
@@ -63,11 +63,11 @@ instance FromJSON Mailbox where
 
 data File
    = File
-   { _fileId :: NylasId
+   { _fileId          :: NylasId
    , _fileContentType :: Text
-   , _fileName :: Text
-   , _fileSize :: Int
-   , _fileContentId :: Maybe Text
+   , _fileName        :: Text
+   , _fileSize        :: Int
+   , _fileContentId   :: Maybe Text
    } deriving (Eq, Show)
 
 makeLenses ''File
@@ -109,8 +109,8 @@ instance FromJSON StarStatus where
 
 data Label
   = Label
-  { _labelId :: NylasId
-  , _labelName :: Text
+  { _labelId          :: NylasId
+  , _labelName        :: Text
   , _labelDisplayName :: Text
   } deriving (Eq, Show)
 
@@ -125,8 +125,8 @@ instance FromJSON Label where
 
 data Folder
   = Folder
-  { _folderId :: NylasId
-  , _folderName :: Text
+  { _folderId          :: NylasId
+  , _folderName        :: Text
   , _folderDisplayName :: Text
   } deriving (Eq, Show)
 
@@ -141,22 +141,22 @@ instance FromJSON Folder where
 
 data Message
    = Message
-   { _messageId :: NylasId
-   , _messageSubject :: Text
-   , _messageSenders :: [Mailbox]
-   , _messageToRecipients :: [Mailbox]
-   , _messageCcRecipients :: [Mailbox]
+   { _messageId            :: NylasId
+   , _messageSubject       :: Text
+   , _messageSenders       :: [Mailbox]
+   , _messageToRecipients  :: [Mailbox]
+   , _messageCcRecipients  :: [Mailbox]
    , _messageBccRecipients :: [Mailbox]
    -- TODO: add support for reply-tos
-   , _messageTime :: MessageTime
-   , _messageThreadId :: NylasId
-   , _messageFiles :: [File]
-   , _messageSnippet :: Text
-   , _messageLabels :: Maybe [Label]
-   , _messageFolder :: Maybe Folder
-   , _messageBody :: Text
-   , _messageRead :: ReadStatus
-   , _messageStarred :: StarStatus
+   , _messageTime          :: MessageTime
+   , _messageThreadId      :: NylasId
+   , _messageFiles         :: [File]
+   , _messageSnippet       :: Text
+   , _messageLabels        :: Maybe [Label]
+   , _messageFolder        :: Maybe Folder
+   , _messageBody          :: Text
+   , _messageRead          :: ReadStatus
+   , _messageStarred       :: StarStatus
    } deriving (Eq, Show)
 
 makeLenses ''Message
@@ -202,19 +202,19 @@ instance FromJSON AttachmentsStatus where
 
 data Thread
   = Thread
-  { _threadId :: NylasId
-  , _threadSubject :: Text
+  { _threadId             :: NylasId
+  , _threadSubject        :: Text
   , _threadFirstTimestamp :: MessageTime
-  , _threadLastTimestamp :: MessageTime
-  , _threadParticipants :: [Mailbox]
-  , _threadSnippet :: Text
-  , _threadLabels :: Maybe [Label]
-  , _threadFolders :: Maybe [Folder]
-  , _threadMessageIds :: [NylasId]
-  , _threadDraftIds :: [NylasId]
-  , _threadVersion :: Int
-  , _threadStarred :: StarStatus
-  , _threadAttachments :: AttachmentsStatus
+  , _threadLastTimestamp  :: MessageTime
+  , _threadParticipants   :: [Mailbox]
+  , _threadSnippet        :: Text
+  , _threadLabels         :: Maybe [Label]
+  , _threadFolders        :: Maybe [Folder]
+  , _threadMessageIds     :: [NylasId]
+  , _threadDraftIds       :: [NylasId]
+  , _threadVersion        :: Int
+  , _threadStarred        :: StarStatus
+  , _threadAttachments    :: AttachmentsStatus
   } deriving (Eq, Show)
 
 makeLenses ''Thread
@@ -260,9 +260,9 @@ makePrisms ''DeltaChange
 
 data Delta
   = Delta
-  { _deltaCursor :: Cursor
+  { _deltaCursor   :: Cursor
   , _deltaObjectId :: NylasId
-  , _deltaChange :: DeltaChange
+  , _deltaChange   :: DeltaChange
   } deriving (Eq, Show)
 
 makeLenses ''Delta
