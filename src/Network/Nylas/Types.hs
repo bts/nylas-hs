@@ -23,7 +23,7 @@ data StreamingError = ParsingError DecodingError (Producer B.ByteString IO ())
                     | ConsumerError Text
 
 instance Show StreamingError where
-  show (ParsingError decodingErr _) = "ParsingError (" <> show decodingErr <> ")"
+  show (ParsingError err _) = "ParsingError (" <> show err <> ")"
   show (ConsumerError txt) = "ConsumerError " <> show txt
 
 type Url = String
@@ -81,7 +81,8 @@ instance FromJSON File where
          <*> v .:? "content_id"
   parseJSON _ = empty
 
-newtype MessageTime = MessageTime { _utcTime :: UTCTime } deriving (Eq, Show, Generic)
+newtype MessageTime = MessageTime { _utcTime :: UTCTime }
+                    deriving (Eq, Show, Generic)
 
 makeLenses ''MessageTime
 
