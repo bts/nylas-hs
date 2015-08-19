@@ -2,7 +2,6 @@ name:                nylas
 version:             0.2.0
 synopsis:            Client for the Nylas API
 description:         A client for the Nylas HTTP API, powered by lens and pipes.
-homepage:            bts@gmail.com
 license:             BSD3
 license-file:        LICENSE
 author:              Brian Schroeder
@@ -17,7 +16,7 @@ bug-reports:         https://github.com/bts/nylas-hs/issues
 
 source-repository head
   type: git
-  location: git://github.com/bts/nylas.git
+  location: git://github.com/bts/nylas-hs.git
 
 library
   exposed-modules:     Network.Nylas, Network.Nylas.Client, Network.Nylas.Types
