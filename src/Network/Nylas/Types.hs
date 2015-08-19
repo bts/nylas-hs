@@ -1,23 +1,34 @@
 {-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
 module Network.Nylas.Types where
 
-import           Prelude
-
-import           Control.Applicative
-import           Control.Lens
-import           Data.Aeson
+import           Control.Applicative   (empty, pure, (<*>))
+import           Control.Lens          (makeLenses, makePrisms, (^.))
+import           Data.Aeson            (FromJSON (parseJSON), ToJSON (toJSON),
+                                        Value (String, Object, Bool), (.:),
+                                        (.:?), object)
 import           Data.Aeson.Types      (Parser)
+import           Data.Bool             (Bool (True, False))
 import qualified Data.ByteString.Char8 as B
+import           Data.Eq               (Eq)
+import           Data.Functor          (fmap, (<$>))
+import           Data.Int              (Int)
+import           Data.Maybe            (Maybe (Nothing, Just))
 import           Data.Monoid           ((<>))
+import           Data.String           (String)
 import           Data.Text             (Text)
 import           Data.Time.Clock       (UTCTime)
 import           Data.Time.Clock.POSIX (posixSecondsToUTCTime)
+import           GHC.Base              (($), (.))
 import           GHC.Generics          (Generic)
+import           GHC.Real              (fromIntegral)
 import           Pipes                 (Producer)
 import           Pipes.Aeson           (DecodingError)
+import           Prelude               (Show)
+import           System.IO             (IO)
 
 data StreamingError = ParsingError DecodingError (Producer B.ByteString IO ())
                     | ConsumerError Text
@@ -158,9 +169,9 @@ data Message
 makeLenses ''Message
 
 recipients :: Message -> [Mailbox]
-recipients m = m^.messageToRecipients
-            <> m^.messageCcRecipients
-            <> m^.messageBccRecipients
+recipients m = m ^. messageToRecipients
+            <> m ^. messageCcRecipients
+            <> m ^. messageBccRecipients
 
 instance FromJSON Message where
   parseJSON (Object v) =
@@ -281,7 +292,7 @@ instance FromJSON Delta where
       "label" -> pure LabelChange
       "folder" -> pure FolderChange
       _ -> empty
-    return $ Delta cursor nyId dc
+    pure $ Delta cursor nyId dc
 
     where
       parseChange :: FromJSON a => Text -> Maybe Value -> Parser (Change a)

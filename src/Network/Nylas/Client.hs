@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Network.Nylas.Client
@@ -6,13 +7,17 @@ module Network.Nylas.Client
        , getThread
        ) where
 
-import           Prelude
-
-import           Control.Lens          hiding (each)
+import           Control.Lens          (view, (&), (.~), (?~), (^.))
+import           Control.Monad         ((=<<))
 import qualified Data.ByteString.Char8 as B
+import           Data.Either           (Either (Left, Right))
+import           Data.Eq               ((/=))
+import           Data.Functor          ((<$>))
+import           Data.Maybe            (Maybe, maybe)
 import           Data.Monoid           ((<>))
 import qualified Data.Text             as T
 import qualified Data.Text.Encoding    as E
+import           GHC.Base              (($))
 import qualified Network.Wreq          as W
 import           Pipes                 (Consumer, Producer, runEffect, (>->))
 import           Pipes.Aeson           (DecodingError)
@@ -20,6 +25,7 @@ import qualified Pipes.Aeson.Unchecked as AU
 import           Pipes.HTTP            (Manager, Request, applyBasicAuth,
                                         parseUrl, responseBody, withHTTP)
 import qualified Pipes.Prelude         as P
+import           System.IO             (IO)
 
 import           Network.Nylas.Types
 
