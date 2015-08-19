@@ -87,8 +87,8 @@ newtype MessageTime = MessageTime { _utcTime :: UTCTime }
 makeLenses ''MessageTime
 
 instance FromJSON MessageTime where
-  parseJSON n = (MessageTime . posixSecondsToUTCTime . fromIntegral) <$>
-                (parseJSON n :: Parser Int)
+  parseJSON n = (MessageTime . posixSecondsToUTCTime . fromIntegral)
+            <$> (parseJSON n :: Parser Int)
 
 data ReadStatus = MessageRead
                 | MessageUnread
@@ -162,9 +162,9 @@ data Message
 makeLenses ''Message
 
 recipients :: Message -> [Mailbox]
-recipients m = m^.messageToRecipients <>
-               m^.messageCcRecipients <>
-               m^.messageBccRecipients
+recipients m = m^.messageToRecipients
+            <> m^.messageCcRecipients
+            <> m^.messageBccRecipients
 
 instance FromJSON Message where
   parseJSON (Object v) =
