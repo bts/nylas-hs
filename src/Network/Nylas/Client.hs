@@ -35,10 +35,11 @@ consumeDeltas
   :: Manager
   -> AccessToken
   -> Namespace
-  -> Cursor
+  -> (Maybe Cursor)
   -> Consumer Delta IO (Either StreamingError ())
   -> IO (Either StreamingError ())
-consumeDeltas m t n (Cursor c) consumer = do
+consumeDeltas m t n mCursor consumer = do
+  let c = maybe "0" _cursorId mCursor
   req <- parseUrl (deltaStreamUrl n <> "?cursor=" <> (T.unpack c))
   let authdReq = authenticatedReq t req
   withHTTP authdReq m $ \resp -> do
