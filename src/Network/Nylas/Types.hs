@@ -22,10 +22,6 @@ import           Pipes.Aeson           (DecodingError)
 data StreamingError = ParsingError DecodingError (Producer B.ByteString IO ())
                     | ConsumerError Text
 
-instance Show StreamingError where
-  show (ParsingError err _) = "ParsingError (" <> show err <> ")"
-  show (ConsumerError txt) = "ConsumerError " <> show txt
-
 type Url = String
 
 newtype AccessToken = AccessToken Text deriving (Eq, Show)
