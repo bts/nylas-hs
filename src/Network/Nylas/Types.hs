@@ -295,13 +295,7 @@ instance FromJSON Delta where
 
   parseJSON _ = empty
 
---
--- TODO: does pipes-aeson *really* require these instances for stream decoding?
---       probably only if we continue to use the lens interface, instead of
---       using their function I.consecutively directly.
---
-instance ToJSON NylasId
-instance ToJSON Message where
-  toJSON _ = object []
+-- HACK: since pipes-aeson's stream decoding lens is bidirectional, we need to
+-- provide this dummy instance:
 instance ToJSON Delta where
   toJSON _ = object []

@@ -44,7 +44,7 @@ consumeDeltas m t n mCursor consumer = do
   let authdReq = authenticatedReq t req
   withHTTP authdReq m $ \resp -> do
     let body = responseBody resp >-> P.takeWhile (/= "\n")
-    let deltas = wrapError <$> view AU.decoded body
+        deltas = wrapError <$> view AU.decoded body
     runEffect $ deltas >-> consumer
 
   where
