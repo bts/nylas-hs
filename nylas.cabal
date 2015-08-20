@@ -12,7 +12,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 homepage:            https://github.com/bts/nylas-hs
 bug-reports:         https://github.com/bts/nylas-hs/issues
-extra-source-files:  README.md CHANGELOG.md
+extra-source-files:  README.md CHANGELOG.md Quickstart.hs
 
 source-repository head
   type: git
