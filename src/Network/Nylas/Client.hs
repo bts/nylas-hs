@@ -29,10 +29,6 @@ import           System.IO             (IO)
 
 import           Network.Nylas.Types
 
-deltaStreamUrl :: Namespace -> Url
-deltaStreamUrl (Namespace n) =
-  T.unpack $ "https://api.nylas.com/n/" <> n <> "/delta/streaming"
-
 authenticatedOpts :: AccessToken -> W.Options -> W.Options
 authenticatedOpts (AccessToken t) = W.auth ?~ W.basicAuth (E.encodeUtf8 t) ""
 
@@ -40,18 +36,20 @@ authenticatedReq :: AccessToken -> Request -> Request
 authenticatedReq (AccessToken t) =
   applyBasicAuth (E.encodeUtf8 t) (E.encodeUtf8 "")
 
+deltaStreamUrl :: Maybe Cursor -> Url
+deltaStreamUrl mCursor =
+  T.unpack $ "https://api.nylas.com/delta/streaming?cursor="
+          <> maybe "0" _cursorId mCursor
+
 consumeDeltas
   :: Manager
   -> AccessToken
-  -> Namespace
   -> Maybe Cursor
   -> Consumer Delta IO (Either StreamingError ())
   -> IO (Either StreamingError ())
-consumeDeltas m t n mCursor consumer = do
-  let c = maybe "0" _cursorId mCursor
-  req <- parseUrl (deltaStreamUrl n <> "?cursor=" <> T.unpack c)
-  let authdReq = authenticatedReq t req
-  withHTTP authdReq m $ \resp -> do
+consumeDeltas m t mCursor consumer = do
+  req <- parseUrl $ deltaStreamUrl mCursor
+  withHTTP (authenticatedReq t req) m $ \resp -> do
     let body = responseBody resp >-> P.takeWhile (/= "\n")
         deltas = wrapError <$> view AU.decoded body
     runEffect $ deltas >-> consumer
@@ -62,32 +60,20 @@ consumeDeltas m t n mCursor consumer = do
     wrapError (Left (err, leftovers)) = Left $ ParsingError err leftovers
     wrapError _ = Right ()
 
-messageUrl :: Namespace -> NylasId -> Url
-messageUrl (Namespace n) (NylasId i) =
-  T.unpack $ "https://api.nylas.com/n/" <> n <> "/messages/" <> i
+messageUrl :: NylasId -> Url
+messageUrl (NylasId i) = T.unpack $ "https://api.nylas.com/messages/" <> i
 
-getMessage
-  :: Manager
-  -> AccessToken
-  -> Namespace
-  -> NylasId
-  -> IO Message
-getMessage mgr t n i = (^. W.responseBody) <$> (W.asJSON =<< W.getWith opts url)
+getMessage :: Manager -> AccessToken -> NylasId -> IO Message
+getMessage mgr t i = (^. W.responseBody) <$> (W.asJSON =<< W.getWith opts url)
   where opts = W.defaults & authenticatedOpts t
                           & W.manager .~ Right mgr
-        url = messageUrl n i
+        url = messageUrl i
 
-threadUrl :: Namespace -> NylasId -> Url
-threadUrl (Namespace n) (NylasId i) =
-  T.unpack $ "https://api.nylas.com/n/" <> n <> "/threads/" <> i
+threadUrl :: NylasId -> Url
+threadUrl (NylasId i) = T.unpack $ "https://api.nylas.com/threads/" <> i
 
-getThread
-  :: Manager
-  -> AccessToken
-  -> Namespace
-  -> NylasId
-  -> IO Thread
-getThread mgr t n i = (^. W.responseBody) <$> (W.asJSON =<< W.getWith opts url)
+getThread :: Manager -> AccessToken -> NylasId -> IO Thread
+getThread mgr t i = (^. W.responseBody) <$> (W.asJSON =<< W.getWith opts url)
   where opts = W.defaults & authenticatedOpts t
                           & W.manager .~ Right mgr
-        url = threadUrl n i
+        url = threadUrl i

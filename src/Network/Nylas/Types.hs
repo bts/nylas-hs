@@ -37,7 +37,6 @@ type Url = String
 
 newtype AccessToken = AccessToken Text deriving (Eq, Show)
 newtype Cursor = Cursor { _cursorId :: Text } deriving (Eq, Show, Generic)
-newtype Namespace = Namespace Text deriving (Eq, Show)
 newtype NylasId = NylasId { _nylasId :: Text } deriving (Eq, Show, Generic)
 
 makeLenses ''Cursor

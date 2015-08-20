@@ -37,14 +37,11 @@ import           Network.Nylas
 token :: AccessToken
 token = AccessToken "_PUT_YOUR_ACCESS_TOKEN_HERE_"
 
-ns :: Namespace
-ns = Namespace "_PUT_YOUR_NAMESPACE_HERE_"
-
 main :: IO ()
 main = do
   mgr <- newManager tlsManagerSettings
   let cursor = Nothing
-  res <- consumeDeltas mgr token ns cursor (P.map show >-> P.print)
+  res <- consumeDeltas mgr token cursor (P.map show >-> P.print)
   case res of
     Left (ParsingError err remainder) -> do
       putStrLn $ "ERROR: " <> show err
