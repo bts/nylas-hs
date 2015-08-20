@@ -1,5 +1,5 @@
 name:                nylas
-version:             0.2.0
+version:             0.3.0
 synopsis:            Client for the Nylas API
 description:         A client for the Nylas HTTP API, powered by lens and pipes.
 license:             BSD3
@@ -12,6 +12,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 homepage:            https://github.com/bts/nylas-hs
 bug-reports:         https://github.com/bts/nylas-hs/issues
+extra-source-files:  README.md CHANGELOG.md
 
 source-repository head
   type: git
