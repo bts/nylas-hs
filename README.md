@@ -1,8 +1,8 @@
 # nylas
 
-An _in-progress_ Haskell client for the [Nylas](https://nylas.com)
-[HTTP API](https://www.nylas.com/docs/platform), powered
-by [lens](https://hackage.haskell.org/package/lens) and
+A _partially completed_ Haskell client for the [Nylas](https://nylas.com)
+[HTTP API](https://www.nylas.com/docs/platform), powered by
+[lens](https://hackage.haskell.org/package/lens) and
 [pipes](https://hackage.haskell.org/package/pipes). At the moment I've only
 implemented support for the endpoints I need.
 
@@ -19,7 +19,8 @@ Pull requests for support of additional endpoints would be greatly appreciated!
 
 ## Quickstart
 
-The following example prints out all of the changes to an inbox:
+The following example prints out all of the (thread and message) changes to an
+inbox using pipes:
 
 ```haskell
 {-# LANGUAGE OverloadedStrings #-}
