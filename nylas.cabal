@@ -1,5 +1,5 @@
 name:                nylas
-version:             0.3.0
+version:             0.1.0
 synopsis:            Client for the Nylas API
 description:         A client for the Nylas HTTP API, powered by lens and pipes.
 license:             BSD3
