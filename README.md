@@ -6,7 +6,10 @@ A _partially completed_ Haskell client for the [Nylas](https://nylas.com)
 [pipes](https://hackage.haskell.org/package/pipes). At the moment I've only
 implemented support for the endpoints I need.
 
-Pull requests for support of additional endpoints would be greatly appreciated!
+Pull requests for the support of additional endpoints would be greatly
+appreciated!
+
+See Hackage for [documentation](http://hackage.haskell.org/package/nylas).
 
 ## Features
 
