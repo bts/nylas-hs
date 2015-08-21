@@ -2,7 +2,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Network.Nylas.Client
-       ( consumeDeltas
+       ( -- * Streaming Delta Consumption
+         consumeDeltas
+         -- * Requesting Individual Objects
        , getMessage
        , getThread
        ) where
@@ -41,6 +43,16 @@ deltaStreamUrl mCursor =
   T.unpack $ "https://api.nylas.com/delta/streaming?cursor="
           <> maybe "0" _cursorId mCursor
 
+-- | Consume 'Delta's for the inbox associated with the provided 'AccessToken'
+-- since the optional 'Cursor' from Nylas' transactional
+-- <https://www.nylas.com/docs/platform#streaming_delta_updates Streaming Delta Updates endpoint>.
+--
+-- Clients should keep track of the 'Cursor' from the latest 'Delta' consumed to
+-- resume consumption in the future.
+--
+-- Any errors encountered during consumption (e.g. while writing to a database)
+-- should be surfaced using the 'ConsumerError' value constructor of
+-- 'StreamingError'.
 consumeDeltas
   :: Manager
   -> AccessToken
@@ -63,6 +75,8 @@ consumeDeltas m t mCursor consumer = do
 messageUrl :: NylasId -> Url
 messageUrl (NylasId i) = T.unpack $ "https://api.nylas.com/messages/" <> i
 
+-- | Fetch the 'Message' identified by 'NylasId' from the account associated
+-- with 'AccessToken'.
 getMessage :: Manager -> AccessToken -> NylasId -> IO Message
 getMessage mgr t i = (^. W.responseBody) <$> (W.asJSON =<< W.getWith opts url)
   where opts = W.defaults & authenticatedOpts t
@@ -72,6 +86,8 @@ getMessage mgr t i = (^. W.responseBody) <$> (W.asJSON =<< W.getWith opts url)
 threadUrl :: NylasId -> Url
 threadUrl (NylasId i) = T.unpack $ "https://api.nylas.com/threads/" <> i
 
+-- | Fetch the 'Thread' identified by 'NylasId' from the account associated with
+-- 'AccessToken'.
 getThread :: Manager -> AccessToken -> NylasId -> IO Thread
 getThread mgr t i = (^. W.responseBody) <$> (W.asJSON =<< W.getWith opts url)
   where opts = W.defaults & authenticatedOpts t

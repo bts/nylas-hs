@@ -8,8 +8,8 @@ module Network.Nylas.Types where
 import           Control.Applicative   (empty, pure, (<*>))
 import           Control.Lens          (makeLenses, makePrisms, (^.))
 import           Data.Aeson            (FromJSON (parseJSON), ToJSON (toJSON),
-                                        Value (String, Object, Bool), (.:),
-                                        (.:?), object)
+                                        Value (String, Object, Bool), object,
+                                        (.:), (.:?))
 import           Data.Aeson.Types      (Parser)
 import           Data.Bool             (Bool (True, False))
 import qualified Data.ByteString.Char8 as B
@@ -30,17 +30,25 @@ import           Pipes.Aeson           (DecodingError)
 import           Prelude               (Show)
 import           System.IO             (IO)
 
+-- | An error in a streaming pipeline involving 'consumeDeltas'.
 data StreamingError = ParsingError DecodingError (Producer B.ByteString IO ())
+                    -- ^ An error in parsing JSON
                     | ConsumerError Text
+                    -- ^ An error produced by clients while consuming 'Delta's
 
 type Url = String
 
+-- | The <https://www.nylas.com/docs/platform#authentication access token> from
+-- Nylas to access data from a single inbox.
 newtype AccessToken = AccessToken Text deriving (Eq, Show)
-newtype Cursor = Cursor { _cursorId :: Text } deriving (Eq, Show, Generic)
-newtype NylasId = NylasId { _nylasId :: Text } deriving (Eq, Show, Generic)
 
+-- | The transactional cursor as of a certain 'Delta'. When requesting a stream
+-- of updates, clients should provide the 'Cursor' for the last 'Delta' they
+-- successfully consumed.
+newtype Cursor = Cursor { _cursorId :: Text } deriving (Eq, Show, Generic)
+
+-- | A lens to access the 'Text' within a 'Cursor'.
 makeLenses ''Cursor
-makeLenses ''NylasId
 
 instance FromJSON Cursor where
   parseJSON (String s) = pure $ Cursor s
@@ -50,6 +58,14 @@ instance FromJSON NylasId where
   parseJSON (String s) = pure $ NylasId s
   parseJSON _ = empty
 
+-- | The unique ID for a Nylas object.
+newtype NylasId = NylasId { _nylasId :: Text } deriving (Eq, Show, Generic)
+
+-- | A lens to access the 'Text' within a 'NylasId'.
+makeLenses ''NylasId
+
+-- | A tuple of an email address and the optional name accompanying it, for
+-- participants in 'Thread's and 'Message's.
 data Mailbox
   = Mailbox
   { _mailboxName  :: Maybe Text
@@ -67,6 +83,9 @@ instance FromJSON Mailbox where
       nonEmpty str = Just str
   parseJSON _ = empty
 
+-- * Nylas Objects
+
+-- | A file attached to a 'Message'.
 data File
    = File
    { _fileId          :: NylasId
@@ -87,6 +106,7 @@ instance FromJSON File where
          <*> v .:? "content_id"
   parseJSON _ = empty
 
+-- | The time a message was sent.
 newtype MessageTime = MessageTime { _utcTime :: UTCTime }
                     deriving (Eq, Show, Generic)
 
@@ -96,12 +116,14 @@ instance FromJSON MessageTime where
   parseJSON n = (MessageTime . posixSecondsToUTCTime . fromIntegral)
             <$> (parseJSON n :: Parser Int)
 
+-- | Whether a 'Message' has been read in the inbox.
 data ReadStatus = MessageRead
                 | MessageUnread
                 deriving (Eq, Show)
 
 makePrisms ''ReadStatus
 
+-- | Whether a 'Message' or 'Thread' has been starred in the inbox.
 data StarStatus = Starred
                 | Unstarred
                 deriving (Eq, Show)
@@ -113,6 +135,7 @@ instance FromJSON StarStatus where
   parseJSON (Bool False) = pure Unstarred
   parseJSON _ = empty
 
+-- | A Gmail-style label applied to a 'Message' or 'Thread'.
 data Label
   = Label
   { _labelId          :: NylasId
@@ -129,6 +152,8 @@ instance FromJSON Label where
           <*> v .: "display_name"
   parseJSON _ = empty
 
+-- | An IMAP-style folder in which 'Message's can reside. A 'Thread' can contain
+-- 'Messages' spanning multiple folders.
 data Folder
   = Folder
   { _folderId          :: NylasId
@@ -145,6 +170,7 @@ instance FromJSON Folder where
            <*> v .: "display_name"
   parseJSON _ = empty
 
+-- | An email message.
 data Message
    = Message
    { _messageId            :: NylasId
@@ -167,6 +193,7 @@ data Message
 
 makeLenses ''Message
 
+-- | A list of the recipients of all types for a 'Message'.
 recipients :: Message -> [Mailbox]
 recipients m = m ^. messageToRecipients
             <> m ^. messageCcRecipients
@@ -195,6 +222,7 @@ instance FromJSON Message where
       fromUnread False = MessageRead
   parseJSON _ = empty
 
+-- | Whether a 'Thread' contains any attached 'File's.
 data AttachmentsStatus = HasAttachments
                        | NoAttachments
                        deriving (Eq, Show)
@@ -206,6 +234,7 @@ instance FromJSON AttachmentsStatus where
   parseJSON (Bool False) = pure NoAttachments
   parseJSON _ = empty
 
+-- | A chain of 'Message's.
 data Thread
   = Thread
   { _threadId             :: NylasId
@@ -242,6 +271,11 @@ instance FromJSON Thread where
            <*> v .: "has_attachments"
   parseJSON _ = empty
 
+-- * Delta Streaming
+
+-- | The change operation wrapping the affected object in a 'Delta'. If the
+-- object has been created or modified (as opposed to deleted), the object is
+-- nested within the 'Change'.
 data Change a
   = Create a
   | Modify a
@@ -250,6 +284,7 @@ data Change a
 
 makePrisms ''Change
 
+-- | The type of modification to the inbox the 'Delta' contains.
 data DeltaChange
   = CalendarChange
   | ContactChange
@@ -264,6 +299,8 @@ data DeltaChange
 
 makePrisms ''DeltaChange
 
+-- | A change to an inbox with a transactional 'Cursor' to continue processing
+-- from this 'Delta' in the future.
 data Delta
   = Delta
   { _deltaCursor   :: Cursor
