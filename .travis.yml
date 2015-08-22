@@ -11,4 +11,5 @@ install:
   - stack setup
 
 script:
-  - stack build
+  # -j1 due to https://github.com/commercialhaskell/stack/issues/773
+  - stack build --ghc-options -j1
