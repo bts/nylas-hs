@@ -1,6 +1,9 @@
 # nylas
 
-A _partially completed_ Haskell client for the [Nylas](https://nylas.com)
+[![Hackage](https://img.shields.io/hackage/v/nylas.svg)](https://hackage.haskell.org/package/nylas)
+ [![Build Status](https://api.travis-ci.org/bts/nylas-hs.svg)](https://travis-ci.org/bts/nylas-hs)
+
+A _partially complete_ Haskell client for the [Nylas](https://nylas.com)
 [HTTP API](https://www.nylas.com/docs/platform), powered by
 [lens](https://hackage.haskell.org/package/lens) and
 [pipes](https://hackage.haskell.org/package/pipes). At the moment I've only
