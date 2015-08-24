@@ -21,7 +21,7 @@ source-repository head
 library
   exposed-modules:     Network.Nylas, Network.Nylas.Client, Network.Nylas.Types
   build-depends:       aeson >= 0.8              && < 0.10
-                     , base >= 4.8               && < 4.9
+                     , base >= 4.7               && < 5.0
                      , bytestring >= 0.10.6.0    && < 0.11
                      , lens >= 4.5               && < 5.0
                      , lens-aeson >= 1.0.0.4     && < 1.1
