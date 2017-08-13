@@ -1,5 +1,8 @@
+resolver: lts-9.0
 flags: {}
 packages:
 - '.'
-extra-deps: []
-resolver: lts-3.2
+extra-deps:
+- pipes-aeson-0.4.1.8
+- pipes-http-1.0.5
+- aeson-1.2.1.0

@@ -20,7 +20,7 @@ source-repository head
 
 library
   exposed-modules:     Network.Nylas, Network.Nylas.Client, Network.Nylas.Types
-  build-depends:       aeson >= 0.8              && < 0.10
+  build-depends:       aeson >= 0.8              && < 1.3
                      , base >= 4.7               && < 5.0
                      , bytestring >= 0.10.6.0    && < 0.11
                      , lens >= 4.5               && < 5.0
@@ -30,7 +30,7 @@ library
                      , pipes-bytestring >= 2.1.1 && < 3.0
                      , pipes-parse >= 3.0.2      && < 4.0
                      , text >= 1.2.1.1           && < 1.3
-                     , wreq >= 0.4.0.0           && < 0.5
+                     , wreq >= 0.4.0.0           && < 0.6
                      , pipes-http >= 1.0.2       && < 2.0
                      , time >= 1.5               && < 2.0
   hs-source-dirs:      src
