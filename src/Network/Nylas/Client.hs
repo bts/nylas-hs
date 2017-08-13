@@ -25,7 +25,7 @@ import           Pipes                 (Consumer, Producer, runEffect, (>->))
 import           Pipes.Aeson           (DecodingError)
 import qualified Pipes.Aeson.Unchecked as AU
 import           Pipes.HTTP            (Manager, Request, applyBasicAuth,
-                                        parseUrl, responseBody, withHTTP)
+                                        parseRequest, responseBody, withHTTP)
 import qualified Pipes.Prelude         as P
 import           System.IO             (IO)
 
@@ -60,7 +60,7 @@ consumeDeltas
   -> Consumer Delta IO (Either StreamingError ())
   -> IO (Either StreamingError ())
 consumeDeltas m t mCursor consumer = do
-  req <- parseUrl $ deltaStreamUrl mCursor
+  req <- parseRequest $ deltaStreamUrl mCursor
   withHTTP (authenticatedReq t req) m $ \resp -> do
     let body = responseBody resp >-> P.takeWhile (/= "\n")
         deltas = wrapError <$> view AU.decoded body
